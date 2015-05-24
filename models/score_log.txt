@@ -1,0 +1,17 @@
+model_name, score, timestamp, message, params
+randomtree,-0.62747535849226133,2015-05-23 14:58:45.558046,No max depth
+randomtree,-0.63363862803014648,2015-05-24 10:16:28.667433,No max depth,{'max_depth': 4}
+randomtree,-0.63363822677792259,2015-05-24 10:19:33.811539,No max depth,"{'max_depth': 4, 'min_samples_leaf': 7}"
+knn,-0.63760324359276754,2015-05-24 10:37:15.049340,No max depth,"{'n_neighbors': 100, 'weights': 'uniform'}"
+adabooster,-0.69175660791,2015-05-24 10:39:59.432440,No max depth,
+gradientbooster,-0.638358185766,2015-05-24 10:39:59.432440,No max depth,
+knn,-0.63687905390410859,2015-05-24 10:59:32.721549,No max depth,"{'n_neighbors': 165, 'weights': 'uniform'}"
+naivebayes,-0.638544696396,2015-05-24 15:58:43.652851,No max depth,
+naivebayes,-2.10315775401,2015-05-24 15:59:28.356217, with bodymarkdown,
+logisticregression,-0.575937938323,2015-05-24 16:02:41.003208, on title,
+logisticregression,-0.601609451649,2015-05-24 16:13:16.109944, l1 on title,
+logisticregression,-0.578785528957,2015-05-24 16:13:47.335108, l2 on title,
+logisticregression,-0.629316659023,2015-05-24 16:14:47.150697, l2 on bodymarkdown,
+logisticregression,-0.585170282753,2015-05-24 16:17:29.246212, l1 on bodymarkdown,
+logisticregression,-0.57249585321425978,2015-05-24 16:27:44.456473, grid on title,"{'penalty': 'l2', 'C': 0.40000000000000002}"
+logisticregression,-0.58518196360660935,2015-05-24 16:29:33.740126,No max depth,"{'penalty': 'l1', 'C': 0.10000000000000001}"
