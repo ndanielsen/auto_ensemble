@@ -21,6 +21,7 @@ from sklearn.cross_validation import train_test_split
 from sklearn.cross_validation import cross_val_score
 
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
 
 from sklearn.linear_model import LogisticRegression
 
@@ -33,6 +34,10 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.grid_search import GridSearchCV
 
 from sklearn.naive_bayes import MultinomialNB
+
+from sklearn.naive_bayes import BernoulliNB
+
+from sklearn.pipeline import Pipeline
 
 from sklearn.preprocessing import StandardScaler
 
@@ -95,35 +100,57 @@ class AutoEnsemble(object):
 
 		self.logger(name=cname, score=str(scores.mean()))
 
+
+	def naivebayes_bernoulli(self):
+		cname = 'naivebayes_bernoulli'
+
+		self.train = self.make_features(self.trainfile)
+		feature_cols = ['Title']
+		self.X = self.train.Title
+		self.y = self.train.OpenStatus
+
+		pipeline = Pipeline([
+    	('vectorizer',  CountVectorizer(ngram_range=(1, 1), stop_words='english')),
+    	# ('tfidf_transformer',  TfidfTransformer()),
+    	('classifier',  BernoulliNB(binarize=0.0)) ])
+
+		scores = cross_val_score(pipeline, self.X, self.y, cv=3, scoring='log_loss')
+
+		self.logger(name=cname, score=str(scores.mean()))
+		
+		print dir(scores)
+		
+
+
 	def logisticregression(self):
 
 		cname = 'logisticregression'
 
 		self.train = self.make_features(self.trainfile)
 		feature_cols = ['Title']
-		self.X = self.train.BodyMarkdown
+		self.X = self.train.Title
 		self.y = self.train.OpenStatus
 
 		vect = CountVectorizer(ngram_range=(1, 1), stop_words='english')
 		
 		counts = vect.fit_transform(self.X)
 
-		# logreg = LogisticRegression(C=0.1, penalty='l1')
+		logreg = LogisticRegression(C=0.4, penalty='l2')
 
-		# scores = cross_val_score(logreg, counts, self.y, cv=3, scoring='log_loss')
+		scores = cross_val_score(logreg, counts, self.y, cv=3, scoring='log_loss')
 
-		# self.logger(name=cname, score=str(scores.mean()))
+		self.logger(name=cname, score=str(scores.mean()))
 
 
-		logreg = LogisticRegression()
+		# logreg = LogisticRegression()
 
-		c_range = arange(.1, 1, .1)
-		p_options = ['l1', 'l2']
-		param_grid = dict(C=c_range, penalty=p_options)
-		grid = GridSearchCV(logreg, param_grid, cv=3, scoring='log_loss')
-		grid.fit(counts, self.y)		
+		# c_range = arange(.1, 1, .1)
+		# p_options = ['l1', 'l2']
+		# param_grid = dict(C=c_range, penalty=p_options)
+		# grid = GridSearchCV(logreg, param_grid, cv=3, scoring='log_loss')
+		# grid.fit(counts, self.y)		
 
-		self.logger(name=cname, score=grid.best_score_, best=grid.best_params_)
+		# self.logger(name=cname, score=grid.best_score_, best=grid.best_params_)
 
 
 
@@ -134,7 +161,7 @@ class AutoEnsemble(object):
 
 	def knn(self):
 		cname = 'knn'
-		neighbors_range = range(100, 200, 5)
+		neighbors_range = range(100, 200, 50)
 		weight_options = ['uniform']#, 'distance']
 		param_grid = dict(n_neighbors=neighbors_range, weights=weight_options)
 
@@ -144,6 +171,7 @@ class AutoEnsemble(object):
 		grid.fit(self.X, self.y)
 		self.logger(name=cname, score=grid.best_score_, best=grid.best_params_)
 
+		print grid.predict()
 
 	def randomforest(self):
 		cname = 'randomforest'
@@ -194,8 +222,9 @@ class AutoEnsemble(object):
 		self.create_files()
 		# self.scaler()
 		# self.naivebayes()
-		self.logisticregression()
-		# self.knn()
+		# self.logisticregression()
+		# self.naivebayes_bernoulli()
+		self.knn()
 		# self.randomforest()
 		# self.adabooster()
 		# self.gradientbooster()

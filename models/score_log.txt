@@ -1,4 +1,4 @@
-model_name, score, timestamp, message, params
+model_name, score, timestamp, message, params, feature_cols
 randomtree,-0.62747535849226133,2015-05-23 14:58:45.558046,No max depth
 randomtree,-0.63363862803014648,2015-05-24 10:16:28.667433,No max depth,{'max_depth': 4}
 randomtree,-0.63363822677792259,2015-05-24 10:19:33.811539,No max depth,"{'max_depth': 4, 'min_samples_leaf': 7}"
@@ -15,3 +15,33 @@ logisticregression,-0.629316659023,2015-05-24 16:14:47.150697, l2 on bodymarkdow
 logisticregression,-0.585170282753,2015-05-24 16:17:29.246212, l1 on bodymarkdown,
 logisticregression,-0.57249585321425978,2015-05-24 16:27:44.456473, grid on title,"{'penalty': 'l2', 'C': 0.40000000000000002}"
 logisticregression,-0.58518196360660935,2015-05-24 16:29:33.740126,No max depth,"{'penalty': 'l1', 'C': 0.10000000000000001}"
+logisticregression,-0.585159796311,2015-05-24 18:36:06.799916, bodymarkdown {'penalty': 'l1', 'C': 0.40000000000000001},
+logisticregression,-0.701578038398,2015-05-24 18:41:35.490759,bodymark down {'penalty': 'l2', 'C': 0.40000000000000001},
+logisticregression,-0.57249588869,2015-05-24 18:47:25.611616, title {'penalty': 'l2', 'C': 0.4,
+naivebayes_bernoulli,-0.651201240986,2015-05-24 18:55:45.634008,No max depth,
+naivebayes_bernoulli,-0.902025835392,2015-05-24 18:56:12.589222,No max depth,
+naivebayes_bernoulli,-0.902025835392,2015-05-24 18:57:06.953912,No max depth,
+naivebayes_bernoulli,-6.3556240103,2015-05-24 18:59:10.663440,No max depth,
+naivebayes_bernoulli,-0.902025835392,2015-05-24 19:02:37.404774,No max depth,
+naivebayes_bernoulli,-0.651201240986,2015-05-24 19:03:10.737145,No max depth,
+naivebayes_bernoulli,-0.651201240986,2015-05-24 19:03:36.488331,No max depth,
+naivebayes_bernoulli,-0.627006269221,2015-05-24 19:04:14.483463,No max depth,
+naivebayes_bernoulli,-0.73954758598,2015-05-24 19:04:44.621363,No max depth,
+knn,-0.63517350591975252,2015-05-24 19:09:16.522649,No max depth,"{'n_neighbors': 150, 'weights': 'uniform'}"
+logisticregression,-0.572495893232,2015-05-24 19:57:53.654843,No max depth,
+logisticregression,-0.572495893232,2015-05-24 20:16:40.346572,No max depth,
+logisticregression,-0.56938364473647118,2015-05-24 20:28:01.296061,No max depth,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}"
+logisticregression,-0.56938364473647118,2015-05-24 20:48:43.327323,No max depth,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}"
+logisticregression,-0.56938364473647118,2015-05-24 20:52:52.060118,No max depth,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}"
+logisticregression,-0.56938364473647118,2015-05-24 20:56:41.379174,No max depth,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}"
+logisticregression,-0.56938364473647118,2015-05-24 21:46:27.646350,No max depth,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}"
+logisticregression,-0.56938364473647118,2015-05-24 21:53:31.772557,No max depth,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}"
+logisticregression,-0.65126282695575011,2015-05-24 22:04:55.250380,Tag1,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.90000000000000002}"
+logisticregression,-0.56938364473647118,2015-05-24 22:04:55.250380,Tag1,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}"
+logisticregression,-0.56938364473647118,2015-05-24 22:24:27.580838,Tag1,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}",Title
+logisticregression,-0.56938364473647118,2015-05-24 22:29:13.921085,Tag1,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}",Title
+logisticregression,-0.56938364473647118,2015-05-24 22:46:49.018096,Tag1,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}",Title
+logisticregression,-0.56938364473647118,2015-05-24 22:52:10.232777,Tag1,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}",Title
+logisticregression,-0.65126282695575011,2015-05-24 22:59:12.422200,Tag1,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.90000000000000002}",Tag1
+logisticregression,-0.56938364473647118,2015-05-24 22:59:12.422200,Tag1,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}",Title
+logisticregression,-0.58187053074138084,2015-05-24 22:59:12.422200,Tag1,"{'logisticregression__penalty': 'l1', 'logisticregression__C': 0.10000000000000001}",BodyMarkdown
