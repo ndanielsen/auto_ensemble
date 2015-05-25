@@ -49,21 +49,13 @@ class AutoEnsemble(object):
 		self.testfile = testfile
 		self.message = message
 		self.timestamp = datetime.datetime.fromtimestamp(time.time())
-
 		self.feature_files()
-
 		self.count_models = 0
 		self.y_pred = [0 for elem in range(0, self.X_test.shape[0])]
- 
-
-
 
 	def feature_files(self):
-
 		trainfile = 'fixtures/train_features.csv'
-
 		testfile =  'fixtures/tested_features.csv'
-
 		if os.path.isfile(trainfile):
 			self.df = pd.read_csv(trainfile, index_col=0)
 			self.y = self.df.OpenStatus
@@ -71,28 +63,13 @@ class AutoEnsemble(object):
 			self.df = self.make_features(self.trainfile)
 			self.y = self.df.OpenStatus
 			self.df.to_csv(trainfile)
-
 		if os.path.isfile(testfile):
 			self.X_test = pd.read_csv(testfile, index_col=0)
-			
 		else:
 			self.X_test = self.make_features(self.testfile)
-			
 			self.X_test.to_csv(testfile)
 
-
-		# self.df.to_csv('train_features.csv')
-		# self.X_test.to_csv('tested_features.csv')
-		# self.df = self.make_features(trainfile)
-		# self.X_test = self.make_features(testfile)
-
-
-
-
-
-
 	def make_features(self, filename):
-
 	    df = pd.read_csv(filename, index_col=0)
 	    df.rename(columns={'OwnerUndeletedAnswerCountAtPostTime':'Answers'}, inplace=True)
 	    df['TitleLength'] = df.Title.apply(len)
@@ -100,9 +77,7 @@ class AutoEnsemble(object):
 	    df['NumTags'] = df.loc[:, 'Tag1':'Tag5'].notnull().sum(axis=1)
 	    df['Tag1'] = df.Tag1.fillna('None')
 	    df['BodySentences'] = df.BodyMarkdown.apply(lambda x: len(TextBlob(x.decode('utf-8')).sentences))
-
 	    return df
-
 
 	def logger(self, name=None, score=None, best=None, tested_feature_cols=None):
 		"""
@@ -111,15 +86,35 @@ class AutoEnsemble(object):
 
 		"""
 		filename = 'models/score_log.txt'
-
 		data = [name, score, str(self.timestamp), self.message, best, tested_feature_cols]
 		with open(filename, 'a+') as f:
 			csv_writer = csv.writer(f)
 			csv_writer.writerow(data)
 
+	def submission(self):
+		"""
+		Sums and averages all predicted probablities and exports to submission CSV.
+		"""
+		probas = self.y_pred / self.count_models
+
+		sub = pd.DataFrame({'id':self.X_test.index, 'OpenStatus':probas}).set_index('id')
+		sub.to_csv('sub.csv')
 
 
-	def text_logisticregression(self, feature_cols=None):#, feature_cols=None, ):
+
+	def pickle_loader(self, name=None, feature_cols=None):
+		pickle_file = 'models/' + name + feature_cols + '_.pickle'
+		if os.path.isfile(pickle_file):
+			with open(pickle_file, "r") as fp: 	#Load model from file
+				grid.best_estimator_ = pickle.load(fp)
+				return grid.best_estimator_
+
+    def pickler(self, model=None, name=None, feature_cols=None):
+    	pickle_file = 'models/' + name + feature_cols + '_.pickle'
+    	with open(pickle_file, "w+") as fp:
+    		pickle.dump(model.best_estimator_, fp)
+
+	def text_logisticregression(self, feature_cols=None, picklename=None):
 
 		cname = 'text_logisticregression'
 		self.X = self.df[feature_cols]
@@ -135,20 +130,17 @@ class AutoEnsemble(object):
 
 		self.logger(name=cname, score=grid.best_score_, best=grid.best_params_, tested_feature_cols=feature_cols)
 
-		if grid.best_score_ > -0.6:
-			pass
 
+		self.pickler(model=grid, name=cname, feature_cols=feature_cols)
 
-		self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
-		self.count_models += 1
-
+		return grid.best_estimator_
 
 	def randomforest(self, feature_cols=None):
 		cname = 'randomforest'
 		self.X = self.df[feature_cols]
 
-		max_range = range(1, 5)
-		n_ests = range(1, 250)
+		max_range = range(1, 8)
+		n_ests = range(50, 150)
 		param_grid = dict(randomforestclassifier__max_features=max_range, randomforestclassifier__n_estimators=n_ests)
 
 		pipe = make_pipeline(
@@ -156,6 +148,7 @@ class AutoEnsemble(object):
 			RandomForestClassifier())
 					
 		grid = GridSearchCV(pipe, param_grid, cv=5, scoring='log_loss')
+		print 'ok'
 		grid.fit(self.X, self.y)		
 
 		self.logger(name=cname, score=grid.best_score_, best=grid.best_params_, tested_feature_cols=feature_cols)
@@ -163,27 +156,39 @@ class AutoEnsemble(object):
 		self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
 		self.count_models += 1
 
+		self.pickler(model=grid, name=cname, feature_cols='NumericData')
 		
-	def submission(self):
+	
 
-		probas = self.y_pred / self.count_models
+	def ensemble(self):
+		"""
+		INIT -- For each proposed model, checks to see if a unique pickle has created for it.
 
-		sub = pd.DataFrame({'id':self.X_test.index, 'OpenStatus':probas}).set_index('id')
-		sub.to_csv('sub.csv')
+		Branch True : If proposed model has pickle, then it loads the pickle and makes a prediction that feeds into the ensemble.
 
+		Branch False : If there is not pickle for proposed model, then model is fitted with test data and pickle is saved.
+
+		"""
+
+		if pickled:
+			pickle_loader(name=None, feature_cols='')				
+			self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
+			self.count_models += 1
+ 
+		else:
+
+			grid = model
+			self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
+			self.count_models += 1
 
 
 	def main(self):
 		# Feature Columns to test ['Title', 'Tag1', 'FirstFourSentences']
-		self.text_logisticregression(feature_cols='Tag1')
-		self.text_logisticregression(feature_cols='Title')
-		self.text_logisticregression(feature_cols='BodyMarkdown')
+		# self.text_logisticregression(feature_cols='Tag1')
+		# self.text_logisticregression(feature_cols='Title')
+		# self.text_logisticregression(feature_cols='BodyMarkdown')
 
 		self.randomforest(feature_cols=['ReputationAtPostCreation', 'Answers', 'TitleLength', 'BodyLength', 'NumTags'])
-		
-		print self.y_pred[:20], len(self.y_pred)
-
-		print self.count_models
 
 		self.submission()
 
@@ -196,6 +201,6 @@ class AutoEnsemble(object):
 if __name__ == '__main__':
 	print 'hello'
 	test = AutoEnsemble(trainfile='fixtures/train.csv', testfile='fixtures/test.csv', message='Tag1')
-	# print test.main()
-	print test.df.columns
+	print test.main()
+	# print test.df.columns
 	# print test.df['Title']

@@ -82,6 +82,9 @@ class AutoEnsemble(object):
 		self.X = self.train[feature_cols]
 		self.y = self.train.OpenStatus
 
+
+
+
 	def naivebayes(self):
 		cname = 'naivebayes'
 
