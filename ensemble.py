@@ -1,4 +1,5 @@
-
+#!/usr/local/bin/python
+# -*- coding: utf-8 -*-
 
 
 import csv
@@ -7,7 +8,11 @@ import time
 import os
 import pickle
 
+import bleach
+import nltk
 from textblob import TextBlob
+
+import numpy as np
 
 from numpy import arange
 
@@ -53,11 +58,13 @@ class AutoEnsemble(object):
 		self.count_models = 0
 		self.y_pred = [0 for elem in range(0, self.X_test.shape[0])]
 
+
 	def feature_files(self):
 		trainfile = 'fixtures/train_features.csv'
 		testfile =  'fixtures/tested_features.csv'
 		if os.path.isfile(trainfile):
 			self.df = pd.read_csv(trainfile, index_col=0)
+			self.dfnum = self.df._get_numeric_data()
 			self.y = self.df.OpenStatus
 		else:
 			self.df = self.make_features(self.trainfile)
@@ -65,19 +72,40 @@ class AutoEnsemble(object):
 			self.df.to_csv(trainfile)
 		if os.path.isfile(testfile):
 			self.X_test = pd.read_csv(testfile, index_col=0)
+			self.X_testnum = self.X_test._get_numeric_data() 
 		else:
 			self.X_test = self.make_features(self.testfile)
 			self.X_test.to_csv(testfile)
 
 	def make_features(self, filename):
-	    df = pd.read_csv(filename, index_col=0)
-	    df.rename(columns={'OwnerUndeletedAnswerCountAtPostTime':'Answers'}, inplace=True)
-	    df['TitleLength'] = df.Title.apply(len)
-	    df['BodyLength'] = df.BodyMarkdown.apply(len)
-	    df['NumTags'] = df.loc[:, 'Tag1':'Tag5'].notnull().sum(axis=1)
-	    df['Tag1'] = df.Tag1.fillna('None')
-	    df['BodySentences'] = df.BodyMarkdown.apply(lambda x: len(TextBlob(x.decode('utf-8')).sentences))
-	    return df
+		df = pd.read_csv(filename, index_col=0)
+		df.rename(columns={'OwnerUndeletedAnswerCountAtPostTime':'Answers'}, inplace=True)
+		df['TitleLength'] = df.Title.apply(len)
+		df['BodyLength'] = df.BodyMarkdown.apply(len)
+		df['NumTags'] = df.loc[:, 'Tag1':'Tag5'].notnull().sum(axis=1)
+		df['Tag1'] = df.Tag1.fillna('None')
+		df['BodySentences_num'] = df.BodyMarkdown.apply(lambda x: len(TextBlob(x.decode('utf-8')).sentences))
+		datetime_cols = ['OwnerCreationDate', 'PostCreationDate', 'PostClosedDate']
+		for col in datetime_cols:
+			df[col] = pd.to_datetime(df[col])
+			df[col + '_Year'] = pd.DatetimeIndex(df[col]).year
+			df[col + '_Month'] = pd.DatetimeIndex(df[col]).month
+			df[col + '_Day'] = pd.DatetimeIndex(df[col]).day
+			df[col + '_DayofWeek'] = pd.DatetimeIndex(df[col]).dayofweek
+			df[col + '_Hour'] = pd.DatetimeIndex(df[col]).hour
+
+		#df['CreatetoPostDateDelta'] = df['PostCreationDate'] - df['OwnerCreationDate']
+		#df['CreatetoPostDateDelta_seconds'] = df['CreatetoPostDateDelta'] / np.timedelta64(1, 's')
+		openstatus_count = pd.DataFrame({'OpenStatus_Count' : df.groupby([u'OwnerUserId']).OpenStatus.sum()  }).reset_index()
+		df = pd.merge(df, openstatus_count, on=['OwnerUserId'])
+		def first(x):
+			text = bleach.clean(x, strip=True)
+			return text
+		df['Cleaned_BodyMarkdown'] = df.BodyMarkdown.apply(first)
+
+
+
+		return df
 
 	def logger(self, name=None, score=None, best=None, tested_feature_cols=None):
 		"""
@@ -100,8 +128,6 @@ class AutoEnsemble(object):
 		sub = pd.DataFrame({'id':self.X_test.index, 'OpenStatus':probas}).set_index('id')
 		sub.to_csv('sub.csv')
 
-
-
 	def pickle_loader(self, name=None, feature_cols=None):
 		pickle_file = 'models/' + name + feature_cols + '_.pickle'
 		if os.path.isfile(pickle_file):
@@ -109,10 +135,10 @@ class AutoEnsemble(object):
 				grid.best_estimator_ = pickle.load(fp)
 				return grid.best_estimator_
 
-    def pickler(self, model=None, name=None, feature_cols=None):
-    	pickle_file = 'models/' + name + feature_cols + '_.pickle'
-    	with open(pickle_file, "w+") as fp:
-    		pickle.dump(model.best_estimator_, fp)
+	def pickler(self, model=None, name=None, feature_cols=None):
+		pickle_file = 'models/' + name + feature_cols + '_.pickle'
+		with open(pickle_file, "w+") as fp:
+			pickle.dump(model.best_estimator_, fp)
 
 	def text_logisticregression(self, feature_cols=None, picklename=None):
 
@@ -131,7 +157,7 @@ class AutoEnsemble(object):
 		self.logger(name=cname, score=grid.best_score_, best=grid.best_params_, tested_feature_cols=feature_cols)
 
 
-		self.pickler(model=grid, name=cname, feature_cols=feature_cols)
+		self.pickler(model=grid, name=cname, feature_cols='BodyMarkdown')
 
 		return grid.best_estimator_
 
@@ -139,15 +165,15 @@ class AutoEnsemble(object):
 		cname = 'randomforest'
 		self.X = self.df[feature_cols]
 
-		max_range = range(1, 8)
-		n_ests = range(50, 150)
+		max_range = range(3, 5)
+		n_ests = range(200, 300, 25)
 		param_grid = dict(randomforestclassifier__max_features=max_range, randomforestclassifier__n_estimators=n_ests)
 
 		pipe = make_pipeline(
 			StandardScaler(), 
 			RandomForestClassifier())
 					
-		grid = GridSearchCV(pipe, param_grid, cv=5, scoring='log_loss')
+		grid = GridSearchCV(pipe, param_grid, cv=3, scoring='log_loss')
 		print 'ok'
 		grid.fit(self.X, self.y)		
 
@@ -188,11 +214,11 @@ class AutoEnsemble(object):
 		# self.text_logisticregression(feature_cols='Title')
 		# self.text_logisticregression(feature_cols='BodyMarkdown')
 
-		self.randomforest(feature_cols=['ReputationAtPostCreation', 'Answers', 'TitleLength', 'BodyLength', 'NumTags'])
+		# self.randomforest(feature_cols=['ReputationAtPostCreation', 'Answers', 'TitleLength', 'BodyLength', 'NumTags'])
 
-		self.submission()
+		# self.submission()
 
-
+		pass
 
 
 

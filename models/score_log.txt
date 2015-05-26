@@ -45,3 +45,7 @@ logisticregression,-0.56938364473647118,2015-05-24 22:52:10.232777,Tag1,"{'logis
 logisticregression,-0.65126282695575011,2015-05-24 22:59:12.422200,Tag1,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.90000000000000002}",Tag1
 logisticregression,-0.56938364473647118,2015-05-24 22:59:12.422200,Tag1,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}",Title
 logisticregression,-0.58187053074138084,2015-05-24 22:59:12.422200,Tag1,"{'logisticregression__penalty': 'l1', 'logisticregression__C': 0.10000000000000001}",BodyMarkdown
+randomforest,-0.7104516017714062,2015-05-25 18:51:12.760560,Tag1,"{'randomforestclassifier__n_estimators': 101, 'randomforestclassifier__max_features': 3}","['ReputationAtPostCreation', 'Answers', 'TitleLength', 'BodyLength', 'NumTags']"
+randomforest,-0.71037409547568409,2015-05-25 19:10:35.834729,Tag1,"{'randomforestclassifier__n_estimators': 104, 'randomforestclassifier__max_features': 3}","['ReputationAtPostCreation', 'Answers', 'TitleLength', 'BodyLength', 'NumTags']"
+randomforest,-0.69950312169505369,2015-05-25 19:32:57.261117,Tag1,"{'randomforestclassifier__n_estimators': 175, 'randomforestclassifier__max_features': 3}","['ReputationAtPostCreation', 'Answers', 'TitleLength', 'BodyLength', 'NumTags']"
+randomforest,-0.69047923426078706,2015-05-25 19:54:12.006755,Tag1,"{'randomforestclassifier__n_estimators': 275, 'randomforestclassifier__max_features': 3}","['ReputationAtPostCreation', 'Answers', 'TitleLength', 'BodyLength', 'NumTags']"
