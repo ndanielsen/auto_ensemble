@@ -20,15 +20,9 @@ import pandas as pd
 
 from sklearn import metrics
 
-from sklearn.cross_validation import train_test_split
-from sklearn.cross_validation import cross_val_score
-
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
 
 from sklearn.linear_model import LogisticRegression
-
-from sklearn.neighbors import KNeighborsClassifier
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
@@ -37,8 +31,6 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.grid_search import GridSearchCV
 
 from sklearn.naive_bayes import MultinomialNB
-
-from sklearn.naive_bayes import BernoulliNB
 
 from sklearn.pipeline import make_pipeline
 
@@ -61,7 +53,7 @@ class AutoEnsemble(object):
 
 	def feature_files(self):
 		trainfile = 'fixtures/train_features.csv'
-		testfile =  'fixtures/tested_features.csv'
+		
 		if os.path.isfile(trainfile):
 			self.df = pd.read_csv(trainfile, index_col=0)
 			self.dfnum = self.df._get_numeric_data()
@@ -70,12 +62,8 @@ class AutoEnsemble(object):
 			self.df = self.make_features(self.trainfile)
 			self.y = self.df.OpenStatus
 			self.df.to_csv(trainfile)
-		if os.path.isfile(testfile):
-			self.X_test = pd.read_csv(testfile, index_col=0)
-			self.X_testnum = self.X_test._get_numeric_data() 
-		else:
-			self.X_test = self.make_features(self.testfile)
-			self.X_test.to_csv(testfile)
+		
+
 
 	def make_features(self, filename):
 		df = pd.read_csv(filename, index_col=0)
@@ -123,6 +111,14 @@ class AutoEnsemble(object):
 		"""
 		Sums and averages all predicted probablities and exports to submission CSV.
 		"""
+		testfile =  'fixtures/tested_features.csv'
+		if os.path.isfile(testfile):
+			self.X_test = pd.read_csv(testfile, index_col=0)
+			self.X_testnum = self.X_test._get_numeric_data() 
+		else:
+			self.X_test = self.make_features(self.testfile)
+			self.X_test.to_csv(testfile)
+		
 		probas = self.y_pred / self.count_models
 
 		sub = pd.DataFrame({'id':self.X_test.index, 'OpenStatus':probas}).set_index('id')
@@ -166,7 +162,7 @@ class AutoEnsemble(object):
 		self.X = self.df[feature_cols]
 
 		max_range = range(3, 5)
-		n_ests = range(200, 300, 25)
+		n_ests = range(100, 500, 25)
 		param_grid = dict(randomforestclassifier__max_features=max_range, randomforestclassifier__n_estimators=n_ests)
 
 		pipe = make_pipeline(
@@ -214,7 +210,7 @@ class AutoEnsemble(object):
 		# self.text_logisticregression(feature_cols='Title')
 		# self.text_logisticregression(feature_cols='BodyMarkdown')
 
-		# self.randomforest(feature_cols=['ReputationAtPostCreation', 'Answers', 'TitleLength', 'BodyLength', 'NumTags'])
+		self.randomforest(feature_cols=['ReputationAtPostCreation', 'Answers', 'TitleLength', 'BodyLength', 'NumTags'])
 
 		# self.submission()
 
