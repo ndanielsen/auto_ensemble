@@ -48,7 +48,8 @@ class AutoEnsemble(object):
 		self.timestamp = datetime.datetime.fromtimestamp(time.time())
 		self.feature_files()
 		self.count_models = 0
-		self.y_pred = [0 for elem in range(0, self.X_test.shape[0])]
+
+		
 
 
 	def feature_files(self):
@@ -60,10 +61,24 @@ class AutoEnsemble(object):
 			self.y = self.df.OpenStatus
 		else:
 			self.df = self.make_features(self.trainfile)
+			self.openstatus_count = pd.DataFrame({'OpenStatus_Count' : self.df.groupby([u'OwnerUserId']).OpenStatus.sum()  }).reset_index()
+			self.df = pd.merge(self.df, self.openstatus_count, on=['OwnerUserId'])			
+
 			self.y = self.df.OpenStatus
 			self.df.to_csv(trainfile)
-		
 
+		
+		testfile =  'fixtures/tested_features.csv'
+		if os.path.isfile(testfile):
+			self.X_test = pd.read_csv(testfile, index_col=0)
+			self.X_testnum = self.X_test._get_numeric_data()
+		else:
+			self.X_test = self.make_features(self.testfile)
+			self.openstatus_count = pd.DataFrame({'OpenStatus_Count' : self.df.groupby([u'OwnerUserId']).OpenStatus.sum()  }).reset_index()
+			self.X_test = pd.merge(self.X_test, self.openstatus_count, on=['OwnerUserId'])
+			self.X_test.to_csv(testfile)
+
+		self.y_pred = [0 for elem in range(0, self.X_test.shape[0])]
 
 	def make_features(self, filename):
 		df = pd.read_csv(filename, index_col=0)
@@ -73,7 +88,7 @@ class AutoEnsemble(object):
 		df['NumTags'] = df.loc[:, 'Tag1':'Tag5'].notnull().sum(axis=1)
 		df['Tag1'] = df.Tag1.fillna('None')
 		df['BodySentences_num'] = df.BodyMarkdown.apply(lambda x: len(TextBlob(x.decode('utf-8')).sentences))
-		datetime_cols = ['OwnerCreationDate', 'PostCreationDate', 'PostClosedDate']
+		datetime_cols = ['OwnerCreationDate', 'PostCreationDate'] #, 'PostClosedDate']
 		for col in datetime_cols:
 			df[col] = pd.to_datetime(df[col])
 			df[col + '_Year'] = pd.DatetimeIndex(df[col]).year
@@ -84,8 +99,8 @@ class AutoEnsemble(object):
 
 		#df['CreatetoPostDateDelta'] = df['PostCreationDate'] - df['OwnerCreationDate']
 		#df['CreatetoPostDateDelta_seconds'] = df['CreatetoPostDateDelta'] / np.timedelta64(1, 's')
-		openstatus_count = pd.DataFrame({'OpenStatus_Count' : df.groupby([u'OwnerUserId']).OpenStatus.sum()  }).reset_index()
-		df = pd.merge(df, openstatus_count, on=['OwnerUserId'])
+		# openstatus_count = pd.DataFrame({'OpenStatus_Count' : df.groupby([u'OwnerUserId']).OpenStatus.sum()  }).reset_index()
+		# df = pd.merge(df, openstatus_count, on=['OwnerUserId'])
 		def first(x):
 			text = bleach.clean(x, strip=True)
 			return text
@@ -111,21 +126,13 @@ class AutoEnsemble(object):
 		"""
 		Sums and averages all predicted probablities and exports to submission CSV.
 		"""
-		testfile =  'fixtures/tested_features.csv'
-		if os.path.isfile(testfile):
-			self.X_test = pd.read_csv(testfile, index_col=0)
-			self.X_testnum = self.X_test._get_numeric_data() 
-		else:
-			self.X_test = self.make_features(self.testfile)
-			self.X_test.to_csv(testfile)
-		
+
 		probas = self.y_pred / self.count_models
 
 		sub = pd.DataFrame({'id':self.X_test.index, 'OpenStatus':probas}).set_index('id')
 		sub.to_csv('sub.csv')
 
-	def pickle_loader(self, name=None, feature_cols=None):
-		pickle_file = 'models/' + name + feature_cols + '_.pickle'
+	def pickle_loader(self, pick_file=None):
 		if os.path.isfile(pickle_file):
 			with open(pickle_file, "r") as fp: 	#Load model from file
 				grid.best_estimator_ = pickle.load(fp)
@@ -162,7 +169,7 @@ class AutoEnsemble(object):
 		self.X = self.df[feature_cols]
 
 		max_range = range(3, 5)
-		n_ests = range(100, 500, 25)
+		n_ests = range(175, 250, 5)
 		param_grid = dict(randomforestclassifier__max_features=max_range, randomforestclassifier__n_estimators=n_ests)
 
 		pipe = make_pipeline(
@@ -175,12 +182,16 @@ class AutoEnsemble(object):
 
 		self.logger(name=cname, score=grid.best_score_, best=grid.best_params_, tested_feature_cols=feature_cols)
 
-		self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
-		self.count_models += 1
-
 		self.pickler(model=grid, name=cname, feature_cols='NumericData')
 		
-	
+	def randomforest_53():
+		feature_cols = ['ReputationAtPostCreation', 'OpenStatus_Count', 'Answers', 'TitleLength', 'BodyLength', 'NumTags']
+
+
+		grid = pickle_loader(pickle_file='53randomforestNumericData_.pickle')
+
+		self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
+		self.count_models += 1
 
 	def ensemble(self):
 		"""
@@ -191,17 +202,18 @@ class AutoEnsemble(object):
 		Branch False : If there is not pickle for proposed model, then model is fitted with test data and pickle is saved.
 
 		"""
+		self.randomforest_53()
 
-		if pickled:
-			pickle_loader(name=None, feature_cols='')				
-			self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
-			self.count_models += 1
+
+		# if pickled:
+		# 	pickle_loader(name=None, feature_cols='')				
+		# 	self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
+		# 	self.count_models += 1
  
-		else:
-
-			grid = model
-			self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
-			self.count_models += 1
+		# else:
+		# 	grid = model
+		# 	self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
+		# 	self.count_models += 1
 
 
 	def main(self):
@@ -210,9 +222,9 @@ class AutoEnsemble(object):
 		# self.text_logisticregression(feature_cols='Title')
 		# self.text_logisticregression(feature_cols='BodyMarkdown')
 
-		self.randomforest(feature_cols=['ReputationAtPostCreation', 'Answers', 'TitleLength', 'BodyLength', 'NumTags'])
+		# self.randomforest(feature_cols=['ReputationAtPostCreation', 'OpenStatus_Count', 'Answers', 'TitleLength', 'BodyLength', 'NumTags'])
 
-		# self.submission()
+		self.submission()
 
 		pass
 
