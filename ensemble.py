@@ -152,29 +152,6 @@ class AutoEnsemble(object):
 		with open(pickle_file, "w+") as fp:
 			pickle.dump(model.best_estimator_, fp)
 
-	def text_logisticregression(self, feature_cols=None, picklename=None):
-
-		cname = 'text_logisticregression'
-		self.X = self.df[feature_cols]
-		
-		pipe = make_pipeline(CountVectorizer(ngram_range=(1, 1), stop_words='english'), 
-			LogisticRegression())
-
-		c_range = arange(.1, 1, .1)
-		p_options = ['l2', 'l1']
-		param_grid = dict(logisticregression__C=c_range, logisticregression__penalty=p_options)
-		grid = GridSearchCV(pipe, param_grid, cv=5, scoring='log_loss')
-		grid.fit(self.X, self.y)		
-
-		self.logger(name=cname, score=grid.best_score_, best=grid.best_params_, tested_feature_cols=feature_cols)
-
-		self.pickler(model=grid, name=cname, feature_cols=feature_cols)
-
-		self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
-		self.count_models += 1
-
-		print cname, feature_cols, grid.best_score_
-
 	def text_logisticregression_load(self, feature_cols=None):
 		cname = 'text_logisticregression'
 		pickle_file = 'models/' + cname + ''.join(feature_cols) + '.pickle'
@@ -205,9 +182,38 @@ class AutoEnsemble(object):
 
 		print cname, feature_cols
 
+	def logisticregression_load(self, feature_cols=None):
+		cname = 'logisticregression'
+		pickle_file = 'models/' + cname + ''.join(feature_cols) + '.pickle'
 
-	def knn(self, feature_cols=None):
-		cname = 'knn'
+		if os.path.isfile(pickle_file):
+			grid = self.pickle_loader(pickle_file=pickle_file)
+			print 'pickle loaded', cname
+		else:
+
+			print 'pickle not loaded', cname, feature_cols
+			self.X = self.df[feature_cols]
+			
+			pipe = make_pipeline(LogisticRegression())
+
+			c_range = arange(.1, 1, .1)
+			p_options = ['l2', 'l1']
+			param_grid = dict(logisticregression__C=c_range, logisticregression__penalty=p_options)
+			grid = GridSearchCV(pipe, param_grid, cv=5, scoring='log_loss')
+			grid.fit(self.X, self.y)		
+
+			self.logger(name=cname, score=grid.best_score_, best=grid.best_params_, tested_feature_cols=feature_cols)
+
+			self.pickler(model=grid, name=cname, feature_cols=feature_cols)
+
+		self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
+		self.count_models += 1
+
+		print cname, feature_cols
+
+
+	def randomforest_load(self, feature_cols=None):
+		cname = 'randomforest'
 
 		pickle_file = 'models/' + cname + ''.join(feature_cols) + '.pickle'
 
@@ -227,21 +233,17 @@ class AutoEnsemble(object):
 		else:
 			print 'pickle not loaded'
 
-			neighbors_range = range(1, 100, 1)
-			weight_options = ['uniform', 'distance']
-			param_grid = dict(n_neighbors=neighbors_range, weights=weight_options)
+			max_range = range(1, 3)
+			n_ests = range(100, 250, 25)
+			param_grid = dict(max_features=max_range, n_estimators=n_ests)
 
-			knn = KNeighborsClassifier()
+			rfclf = RandomForestClassifier()
 
-			grid = GridSearchCV(knn, param_grid, cv=5, scoring='log_loss')
+			grid = GridSearchCV(rfclf, param_grid, cv=3, scoring='log_loss')
 			grid.fit(self.X, self.y)
 			
-
 			self.logger(name=cname, score=grid.best_score_, best=grid.best_params_, tested_feature_cols=feature_cols)
-
 			self.pickler(model=grid, name=cname, feature_cols=feature_cols)
-
-
 
 
 		self.y_pred += grid.predict_proba(self.y_test)[:, 1]
@@ -249,6 +251,42 @@ class AutoEnsemble(object):
 
 		print cname, feature_cols
 
+	def knn_load(self, feature_cols=None):
+		cname = 'knn'
+		pickle_file = 'models/' + cname + ''.join(feature_cols) + '.pickle'
+
+		self.X = self.df[feature_cols]
+		self.y_test = self.X_test[feature_cols]
+		scaler = StandardScaler()
+	
+		scaler.fit(self.X)
+		self.X = scaler.transform(self.X)
+		self.y_test = scaler.transform(self.y_test)
+
+		if os.path.isfile(pickle_file):
+			grid = self.pickle_loader(pickle_file=pickle_file)
+			print 'pickle loaded'
+
+		else:
+			print 'pickle not loaded'
+
+			neighbors_range = range(1, 100, 1)
+			weight_options = ['uniform', 'distance']
+			param_grid = dict(n_neighbors=neighbors_range, weights=weight_options)
+
+			knn = KNeighborsClassifier()
+			grid = GridSearchCV(knn, param_grid, cv=5, scoring='log_loss')
+			grid.fit(self.X, self.y)
+	
+
+			self.logger(name=cname, score=grid.best_score_, best=grid.best_params_, tested_feature_cols=feature_cols)
+
+			self.pickler(model=grid, name=cname, feature_cols=feature_cols)
+
+		self.y_pred += grid.predict_proba(self.y_test)[:, 1]
+		self.count_models += 1
+
+		print cname, feature_cols
 
 	def randomforest(self, feature_cols=None):
 		cname = 'randomforest'
@@ -273,71 +311,24 @@ class AutoEnsemble(object):
 		self.y_pred += grid.predict_proba(self.y)[:, 1]
 		self.count_models += 1
 
-	def randomforest_XXX(self):
-		feature_cols = ['ReputationAtPostCreation', 'OpenStatus_Count', 'Answers', 'TitleLength', 'BodyLength', 'NumTags']
-		self.X = self.df[feature_cols]
-
-
-		# grid = self.pickle_loader(pickle_file='models/randomforestNumericData53_.pickle')
-
-		RandomForestClassifier()
-
-		scaler = StandardScaler()
-		scaler.fit(self.X)
-		self.y = scaler.transform(self.X_test[feature_cols])
-
-
-		self.y_pred += grid.predict_proba(self.y)[:, 1]
-		self.count_models += 1
-
-	def randomforest_53(self):
-		feature_cols = ['ReputationAtPostCreation', 'OpenStatus_Count', 'Answers', 'TitleLength', 'BodyLength', 'NumTags']
-		self.X = self.df[feature_cols]
-
-		rfclf = RandomForestClassifier(n_estimators=240, max_features=3, oob_score=True, random_state=1)
-		
-		rfclf.fit(self.X, self.y)
-
-		self.y_pred += rfclf.predict_proba(self.X_test[feature_cols])[:, 1]
-		self.count_models += 1
-
-		print 'done'
-
-
-
-
-
-	def ensemble(self):
-		"""
-		INIT -- For each proposed model, checks to see if a unique pickle has created for it.
-
-		Branch True : If proposed model has pickle, then it loads the pickle and makes a prediction that feeds into the ensemble.
-
-		Branch False : If there is not pickle for proposed model, then model is fitted with test data and pickle is saved.
-
-		"""
-		self.randomforest_53()
-
-
-		# if pickled:
-		# 	pickle_loader(name=None, feature_cols='')				
-		# 	self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
-		# 	self.count_models += 1
- 
-		# else:
-		# 	grid = model
-		# 	self.y_pred += grid.predict_proba(self.X_test[feature_cols])[:, 1]
-		# 	self.count_models += 1
-
 
 	def main(self):
 		# Feature Columns to test ['Title', 'Tag1', 'FirstFourSentences']
 		self.text_logisticregression_load(feature_cols='Title')
-		# self.text_logisticregression(feature_cols='Cleaned_BodyMarkdown')
-		# self.text_logisticregression(feature_cols='First_Sentence')
-		# self.text_logisticregression(feature_cols='Last_Sentence')
+		# self.text_logisticregression_load(feature_cols='Tag1')
+		
 
-		self.knn(feature_cols=['Answers', 'ReputationAtPostCreation'])
+		self.randomforest_load(feature_cols=['ReputationAtPostCreation', 'OpenStatus_Count', 'Answers', u'BodySentences_num', 'TitleLength', 'BodyLength', 'NumTags'])
+		#self.logisticregression_load(feature_cols=['ReputationAtPostCreation', 'OpenStatus_Count', 'Answers', 'BodySentences_num', 'TitleLength', 'BodyLength', 'NumTags'])
+		# self.logisticregression_load(feature_cols=[ 'BodySentences_num', 'TitleLength', 'BodyLength', 'NumTags'])
+		#self.logisticregression_load(feature_cols=['ReputationAtPostCreation', 'PostCreationDate_Year', 'NumTags'])
+		#self.logisticregression_load(feature_cols=['ReputationAtPostCreation', 'OwnerCreationDate_Year', 'NumTags'])
+		#self.logisticregression_load(feature_cols=['PostCreationDate_DayofWeek', 'BodyLength', 'NumTags'])
+
+		self.text_logisticregression_load(feature_cols='Cleaned_BodyMarkdown')		
+		
+
+		# self.knn(feature_cols=['Answers', 'ReputationAtPostCreation'])
 
 		self.submission()
 
