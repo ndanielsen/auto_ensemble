@@ -68,3 +68,5 @@ logisticregression,-0.67950789050506955,2015-05-26 23:53:58.012120,Tag1,"{'logis
 logisticregression,-0.68617548677111051,2015-05-26 23:53:58.012120,Tag1,"{'logisticregression__penalty': 'l1', 'logisticregression__C': 0.5}","['ReputationAtPostCreation', 'PostCreationDate_Year', 'NumTags']"
 logisticregression,-0.68616406932549179,2015-05-26 23:53:58.012120,Tag1,"{'logisticregression__penalty': 'l1', 'logisticregression__C': 0.30000000000000004}","['ReputationAtPostCreation', 'OwnerCreationDate_Year', 'NumTags']"
 logisticregression,-0.6840447266881593,2015-05-26 23:53:58.012120,Tag1,"{'logisticregression__penalty': 'l1', 'logisticregression__C': 0.5}","['PostCreationDate_DayofWeek', 'BodyLength', 'NumTags']"
+randomforest,-0.33788792227654713,2015-05-27 00:12:57.368106,Tag1,"{'max_features': 1, 'n_estimators': 200}","['ReputationAtPostCreation', 'OpenStatus_Count', 'Answers', u'BodySentences_num', 'TitleLength', 'BodyLength', 'NumTags']"
+text_logisticregression,-0.57990248929034194,2015-05-27 00:12:57.368106,Tag1,"{'logisticregression__penalty': 'l1', 'logisticregression__C': 0.10000000000000001}",Cleaned_BodyMarkdown

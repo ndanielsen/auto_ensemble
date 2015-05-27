@@ -288,37 +288,14 @@ class AutoEnsemble(object):
 
 		print cname, feature_cols
 
-	def randomforest(self, feature_cols=None):
-		cname = 'randomforest'
-		self.X = self.df[feature_cols]
-
-		max_range = range(3, 5)
-		n_ests = range(175, 250, 5)
-		param_grid = dict(randomforestclassifier__max_features=max_range, randomforestclassifier__n_estimators=n_ests)
-
-		pipe = make_pipeline(
-			StandardScaler(), 
-			RandomForestClassifier())
-					
-		grid = GridSearchCV(pipe, param_grid, cv=3, scoring='log_loss')
-		print 'ok'
-		grid.fit(self.X, self.y)		
-
-		self.logger(name=cname, score=grid.best_score_, best=grid.best_params_, tested_feature_cols=feature_cols)
-
-		# self.pickler(model=grid, name=cname, feature_cols='NumericData')
-		
-		self.y_pred += grid.predict_proba(self.y)[:, 1]
-		self.count_models += 1
-
-
+	
 	def main(self):
 		# Feature Columns to test ['Title', 'Tag1', 'FirstFourSentences']
 		self.text_logisticregression_load(feature_cols='Title')
 		# self.text_logisticregression_load(feature_cols='Tag1')
 		
 
-		self.randomforest_load(feature_cols=['ReputationAtPostCreation', 'OpenStatus_Count', 'Answers', u'BodySentences_num', 'TitleLength', 'BodyLength', 'NumTags'])
+		# self.randomforest_load(feature_cols=['ReputationAtPostCreation', 'OpenStatus_Count', 'Answers', u'BodySentences_num', 'TitleLength', 'BodyLength', 'NumTags'])
 		#self.logisticregression_load(feature_cols=['ReputationAtPostCreation', 'OpenStatus_Count', 'Answers', 'BodySentences_num', 'TitleLength', 'BodyLength', 'NumTags'])
 		# self.logisticregression_load(feature_cols=[ 'BodySentences_num', 'TitleLength', 'BodyLength', 'NumTags'])
 		#self.logisticregression_load(feature_cols=['ReputationAtPostCreation', 'PostCreationDate_Year', 'NumTags'])
