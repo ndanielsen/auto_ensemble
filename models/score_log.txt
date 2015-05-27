@@ -52,3 +52,6 @@ randomforest,-0.69047923426078706,2015-05-25 19:54:12.006755,Tag1,"{'randomfores
 randomforest,-0.63089900109728014,2015-05-25 22:50:58.561697,Tag1,"{'randomforestclassifier__n_estimators': 200, 'randomforestclassifier__max_features': 3}","['ReputationAtPostCreation', 'Answers', 'TitleLength', 'BodyLength', 'NumTags']"
 randomforest,-0.63768671230722662,2015-05-26 08:47:04.659859,Tag1,"{'randomforestclassifier__n_estimators': 245, 'randomforestclassifier__max_features': 3}","['ReputationAtPostCreation', 'Answers', 'TitleLength', 'BodyLength', 'NumTags']"
 randomforest,-0.53539401486612392,2015-05-26 08:48:02.194176,Tag1,"{'randomforestclassifier__n_estimators': 240, 'randomforestclassifier__max_features': 3}","['ReputationAtPostCreation', 'OpenStatus_Count', 'Answers', 'TitleLength', 'BodyLength', 'NumTags']"
+text_logisticregression,-0.57065660134388241,2015-05-26 21:50:27.323480,Tag1,"{'logisticregression__penalty': 'l2', 'logisticregression__C': 0.40000000000000002}",Title
+knn,-16.350468430817617,2015-05-26 22:59:51.339313,Tag1,"{'n_neighbors': 1, 'weights': 'uniform'}","['Answers', 'ReputationAtPostCreation']"
+knn,-16.350468430817617,2015-05-26 23:06:00.640199,Tag1,"{'n_neighbors': 1, 'weights': 'uniform'}","['Answers', 'ReputationAtPostCreation']"
