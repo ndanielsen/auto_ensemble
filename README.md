@@ -8,6 +8,13 @@ __Make some that you have the kaggle data files download into fixtures__
 
 ## Intended -- Eventual Use:
 
+----
+###Store your data cleaning and feature creation in the makefeatures.
+
+
+-----
+###Use this convention for creating your ensemble. Check your log file for which models perform the best.
+
 
 import AutoEnsemble
 
