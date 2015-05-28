@@ -318,6 +318,13 @@ class AutoEnsemble(object):
 if __name__ == '__main__':
 	print 'hello'
 	test = AutoEnsemble(trainfile='fixtures/train.csv', testfile='fixtures/test.csv', message='Tag1')
-	print test.main()
+	print 'Start modeling'
+	test.text_logisticregression_load(feature_cols='Title')
+	test.text_logisticregression_load(feature_cols='Cleaned_BodyMarkdown')		
+	print 'Done modeling'
+	test.submission()
+	print 'All done and submission file is ready'
+
+	# print test.main()
 	# print test.df.columns
 	# print test.df['Title']
