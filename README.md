@@ -16,7 +16,7 @@ __Make some that you have the kaggle data files download into fixtures__
 ###Use this convention for creating your ensemble. Check your log file for which models perform the best.
 
 
-import AutoEnsemble
+from auto_ensemble import AutoEnsemble
 
 test = AutoEnsemble(trainfile='fixtures/train.csv', testfile='fixtures/test.csv', message="Testing something" )
 
